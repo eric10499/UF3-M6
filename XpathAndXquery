@@ -1,0 +1,148 @@
+doc('db/nueva/empleados.xml')/EMPLEADOS/EMP_ROW[position() = last() -1]/APELLIDO/text()
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/EMP_ROW[position() = 3]
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/count(EMP_ROW[DEPT_NO = 10])
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/sum(EMP_ROW[DEPT_NO = 20]/SALARIO)
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/max(EMP_ROW[OFICIO = 'ANALISTA']/SALARIO)
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/min(EMP_ROW[OFICIO = 'ANALISTA']/SALARIO)
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/avg(EMP_ROW[DEPT_NO = 10]/SALARIO)
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/EMP_ROW/concat(APELLIDO, OFICIO, SALARIO)
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/EMP_ROW[starts-with(APELLIDO, 'A')]
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/EMP_ROW[contains(OFICIO, 'OR')]/OFICIO/text()
+
+doc('db/nueva/empleados.xml')/EMPLEADOS/EMP_ROW[string-length(APELLIDO) < 4]
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+doc('db/nueva/productos.xml')/productos/produc/denominacion/text()|/productos/produc/precio/text()
+
+doc('db/nueva/productos.xml')/productos/produc[contains(denominacion, 'Placa Base')]
+
+doc('db/nueva/productos.xml')/productos/produc[precio > 60 and cod_zona = 20]
+
+doc('db/nueva/productos.xml')/productos/count(produc[contains(denominacion, 'Memoria') and cod_zona = 10])
+
+doc('db/nueva/productos.xml')/productos/avg(produc[contains(denominacion, 'Micro')]/precio)
+
+doc('db/nueva/productos.xml')/productos/produc[number(stock_minimo) > number(stock_actual)]
+
+doc('db/nueva/productos.xml')/productos/produc[precio = max(precio)]
+
+doc('db/nueva/productos.xml')/productos/produc[cod_zona = 20 and precio = min(precio)]
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+xquery version "3.1";
+
+for $emp in /EMPLEADOS/EMP_ROW
+where (starts-with($emp/OFICIO, "P"))
+return $emp/OFICIO
+    
+
+
+xquery version "3.1";
+
+for $emp in distinct-values(/EMPLEADOS/EMP_ROW/OFICIO)
+let $num_empleado := /EMPLEADOS/EMP_ROW[OFICIO = $emp]/EMP_NO
+return <OFICIO> {$emp}
+            <NUM_EMPLEADO>{$num_empleado}</NUM_EMPLEADO>
+        </OFICIO>
+    
+
+
+xquery version "3.1";
+
+for $depart in distinct-values(/EMPLEADOS/EMP_ROW/DEPT_NO)
+let $num_empleado := /EMPLEADOS/EMP_ROW[DEPT_NO = $depart]/EMP_NO
+let $salario := /EMPLEADOS/EMP_ROW[EMP_NO = $num_empleado] /SALARIO
+return <DEPART> {$depart}
+            <NUM_EMPLEADO>{count($num_empleado)}</NUM_EMPLEADO>
+            <AVG_SALARIO>{avg($salario)}</AVG_SALARIO>
+        </DEPART>
+    
+
+xquery version "3.1";
+
+for $depart in distinct-values(/EMPLEADOS/EMP_ROW/DEPT_NO)
+let $num_empleado := /EMPLEADOS/EMP_ROW[DEPT_NO = $depart]/EMP_NO
+let $salario := /EMPLEADOS/EMP_ROW[EMP_NO = $num_empleado] /SALARIO
+return <DEPART> {$depart}
+            <NUM_EMPLEADO>{count($num_empleado)}</NUM_EMPLEADO>
+            <AVG_SALARIO>{round(avg($salario))}</AVG_SALARIO>
+        </DEPART>
+    
+--------------------------------------------------------------------------------------------------------------------------------------
+
+xquery version "3.1";
+
+for $zona in distinct-values(/productos/produc/cod_zona)
+let $num_productos := /productos/produc[cod_zona = $zona]/cod_prod
+return <ZONA> {$zona}
+            <NUM_EMPLEADO>{count($num_productos)}</NUM_EMPLEADO>
+        </ZONA>
+    
+
+xquery version "3.1";
+
+for $prod in /productos/produc
+return if ($prod/cod_zona = 10)
+    then <zona10>{$prod/denominacion}</zona10>
+    else if ($prod/cod_zona = 20)
+    then <zona20>{$prod/denominacion}</zona20>
+    else if ($prod/cod_zona = 30)
+    then <zona30>{$prod/denominacion}</zona30>
+    else <zona40>{$prod/denominacion}</zona40>
+
+
+xquery version "3.1";
+
+for $zona in distinct-values(/productos/produc/cod_zona)
+let $denominacion := /productos/produc[cod_zona = $zona and precio = max(precio)]/denominacion
+return
+    <Zona>{$zona}
+        <denominacion>{$denominacion}</denominacion>
+    </Zona>
+
+
+
+for $prod in /productos/produc
+return if ($prod[starts-with(denominacion, 'Placa Base')])
+    then <Placa>{$prod/denominacion}</Placa>
+    else if ($prod[starts-with(denominacion, 'Memoria')])
+    then <Memoria>{$prod/denominacion}</Memoria>
+    else if ($prod[starts-with(denominacion, 'Micro')])
+    then <micro>{$prod/denominacion}</micro>
+    else <otros>{$prod/denominacion}</otros>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
