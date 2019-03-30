@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -39,8 +40,9 @@ public class ConexionMongoDB {
 			System.out.println("3- Visualizar alumno por Nombre: ");
 			System.out.println("4- Modificar alumno por Nombre: ");
 			System.out.println("5- Eliminar alumno por Nombre: ");
-			System.out.println("6- Volcar datos alumno a fichero: ");
-			System.out.println("7- Salir: ");
+			System.out.println("6- Volcar datos alumno a fichero txt: ");
+			System.out.println("7- Volcar datos alumno a fichero html: ");
+			System.out.println("8- Salir: ");
 			System.out.println("--------------------------------------------");
 			System.out.println("");
 			int seleccion = sc.nextInt();
@@ -56,7 +58,9 @@ public class ConexionMongoDB {
 				borrarDatosAlumnosByName(coleccion, sc);
 			} else if(seleccion == 6){
 				volcarDatosAlumnoAFicheroByName(coleccion, sc);
-			} else if(seleccion == 7) {
+			} else if(seleccion ==7) {
+				volcarDatosAlumnoAFicheroByNameHTML(coleccion, sc);
+			} else if(seleccion ==8) {
 				System.out.println("");
 				System.out.println("Hasta la próxima.");
 				System.out.println("");
@@ -158,7 +162,7 @@ public class ConexionMongoDB {
 	}
 
 	/**
-	 * Vocar Datos de uno de los documentos insertados en nuestra base de datos al documento indicado, filtrando por su Nombre.
+	 * Volcar Datos de uno de los documentos insertados en nuestra base de datos al documento indicado, filtrando por su Nombre.
 	 * @param coleccion
 	 * @param sc
 	 */
@@ -176,6 +180,102 @@ public class ConexionMongoDB {
 				Document doc = cursor.next(); 
 				if(doc.getString("nombre").equals(nombre)) {
 					pw.print(doc.toJson()); 
+				}
+			} 
+			cursor.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (null != fichero)
+					fichero.close();
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Crear tabla html con los datos guardados.
+	 * @param id
+	 * @param nombre
+	 * @param teléfono
+	 * @param curso
+	 * @param fecha
+	 * @param pw
+	 */
+	public static void crearHTMLSchema(ObjectId id, String nombre, int teléfono, String curso, Date fecha, PrintWriter pw) {
+		pw.print("<!DOCTYPE html>");
+		pw.print("<html>");
+		pw.print("<head>");
+		pw.print("<style>");
+		pw.print("h2 {");
+		pw.print("\ttext-align: center;");
+		pw.print("\tfont-style: oblique;");
+		pw.print("\tcolor: blue;");
+		pw.print("\tfont-family: \"Courier New\", Courier, monospace");
+		pw.print("}");
+		pw.print("table {");
+		pw.print("\tfont-family: arial, sans-serif;");
+		pw.print("\tborder-collapse: collapse;");
+		pw.print("\twidth: 100%;");
+		pw.print("}");
+		pw.print("th {");
+		pw.print("\tborder: 2px solid blue;");
+		pw.print("\tcolor:blue;");
+		pw.print("\ttext-align: left;");
+		pw.print("\twidth: 100%;");
+		pw.print("}");
+		pw.print("td {");
+		pw.print("\tborder: 2px solid blue;");
+		pw.print("\ttext-align: left;");
+		pw.print("\tpadding: 8px;");
+		pw.print("}");
+		pw.print("tr:nth-child(even) {");
+		pw.print("\tbackground-color: #dddddd;");
+		pw.print("</style>");
+		pw.print("</head>");
+		pw.print("<body>");
+		pw.print("<h2>ALUMNOS</h2>");
+		pw.print("\t<table>");
+		pw.print("\t\t<tr>");
+		pw.print("\t\t\t<th>" + "ID" + "</th>");
+		pw.print("\t\t\t<th>" + "NOMBRE" + "</th>");
+		pw.print("\t\t\t<th>" + "TELÉFONO" + "</th>");
+		pw.print("\t\t\t<th>" + "CURSO" + "</th>");
+		pw.print("\t\t\t<th>" + "FECHA" + "</th>");
+		pw.print("\t\t</tr>");
+		pw.print("\t\t<tr>");
+		pw.print("\t\t\t<td>" + id + "</td>");
+		pw.print("\t\t\t<td>" + nombre + "</td>");
+		pw.print("\t\t\t<td>" + teléfono + "</td>");
+		pw.print("\t\t\t<td>" + curso + "</td>");
+		pw.print("\t\t\t<td>" + fecha + "</td>");
+		pw.print("\t\t</tr>");
+		pw.print("\t</table>");
+		pw.print("</body>");
+
+	}
+
+	/**
+	 * Volcar Datos de uno de los documentos insertados en nuestra base de datos al documento html indicado, filtrando por su Nombre.
+	 * @param coleccion
+	 * @param sc
+	 */
+	public static void volcarDatosAlumnoAFicheroByNameHTML(MongoCollection<org.bson.Document> coleccion, Scanner sc) {
+		MongoCursor<Document> cursor = coleccion.find().iterator(); 
+		FileWriter fichero = null;
+		PrintWriter pw = null;
+		try{
+			fichero = new FileWriter("C:\\Users\\ERIC\\Desktop\\pruebaMongo\\pruebaMongo.html");
+			pw = new PrintWriter(fichero);
+
+			System.out.println("Escribe el nombre del alumno a volcar al fichero: ");
+			String nombre = sc.next();
+			while (cursor.hasNext()) {
+				Document doc = cursor.next(); 
+				if(doc.getString("nombre").equals(nombre)) {
+					crearHTMLSchema(doc.getObjectId("_id"), doc.getString("nombre"), doc.getInteger("teléfono"), doc.getString("curso"), doc.getDate("fecha"), pw); 
 				}
 			} 
 			cursor.close();
